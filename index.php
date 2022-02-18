@@ -7,9 +7,9 @@ session_start();
 include('config/database.php');
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
-}else{
+} else {
 
-        $records = $conn->prepare('SELECT id, nombre, email FROM ws_usuario WHERE id = :id');
+    $records = $conn->prepare('SELECT id, nombre, email FROM ws_usuario WHERE id = :id');
     $records->bindParam(':id', $_SESSION['user_id']);
     $records->execute();
     $results = $records->fetch(PDO::FETCH_ASSOC);
@@ -25,4 +25,4 @@ include('resources/templates/header.php');
 
 include('resources/templates/reservacion/index.php');
 
-include ('resources/templates/footer.php');
+include('resources/templates/footer.php');

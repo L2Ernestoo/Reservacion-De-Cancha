@@ -6,14 +6,17 @@
 $error = false;
 try {
     include 'config/database.php';
-    function getCancha(){
+    function getCancha()
+    {
         global $conn;
         $strQuery = "SELECT c.id, c.precio FROM ws_cancha c";
         $qTMP = $conn->prepare($strQuery);
         $qTMP->execute();
         return $qTMP->fetchAll();
     }
-    function getTipoPago(){
+
+    function getTipoPago()
+    {
         global $conn;
         $strQuery = "SELECT tp.id, tp.tipo_de_pago FROM ws_tipo_de_pago tp";
         $qTMP = $conn->prepare($strQuery);
@@ -21,29 +24,30 @@ try {
         return $qTMP->fetchAll();
     }
 
-    function getEventos(){
+    function getEventos()
+    {
         global $conn;
         $intUser = $_SESSION['user_id'];
-        $strQuery = "SELECT r.id, r.fecha_reservacion, r.hora_reservacion, r.ws_cancha_id, r.ws_usuario_id FROM ws_reservacion r WHERE r.ws_usuario_id = $intUser";
+        $strQuery = "SELECT r.id, r.fecha_reservacion, r.hora_reservacion_inicio, r.hora_reservacion_final, r.ws_cancha_id, r.ws_usuario_id FROM ws_reservacion r WHERE r.ws_usuario_id = $intUser";
         $qTMP = $conn->prepare($strQuery);
         $qTMP->execute();
         return $qTMP->fetchAll();
     }
 
+
     $objCanchas = getCancha();
     $objTipoPagos = getTipoPago();
     $objEventos = getEventos();
-} catch(PDOException $error) {
-    $error= $error->getMessage();
+} catch (PDOException $error) {
+    $error = $error->getMessage();
 }
 
 ?>
-<?php require 'resources/templates/header.php' ?>
-
 <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="#">FUTECA</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
+                aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarCollapse">
@@ -86,34 +90,37 @@ try {
                                         <select name="cancha" class="form-control" id="canchasSelect" required>
                                             <option hidden value="">Selecciona una Cancha</option>
                                             <?php
-                                            foreach($objCanchas as $cancha){
+                                            foreach ($objCanchas as $cancha) {
                                                 ?>
-                                                <option value="<?=$cancha['id']?>@<?=$cancha['precio']?>">Cancha <?=$cancha['id']?></option>
+                                                <option value="<?= $cancha['id'] ?>@<?= $cancha['precio'] ?>">
+                                                    Cancha <?= $cancha['id'] ?></option>
                                                 <?php
                                             }
                                             ?>
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-md-12">
+                                <div class="col-md-6">
                                     <div class="form-floating mb-3">
-                                        <label for="title">Hora</label>
-                                        <select name="hora" class="form-control" id="horaSelect" required>
-                                            <option hidden value="">Selecciona la hora a reservar</option>
-                                            <?php
-                                            for($i=16; $i<22; $i++){
-                                                ?>
-                                                <option value="<?=$i?>:00:00"><?=$i?>:00</option>
-                                                <?php
-                                            }
-                                            ?>
+                                        <label for="title">Hora Inicio</label>
+                                        <select name="hora_inicio" class="form-control" id="horaSelect" required>
+                                            <option hidden value="">Selecciona la Hora Inicio</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating mb-3">
+                                        <label for="title">Hora Final</label>
+                                        <select name="hora_final" class="form-control" id="horaSelectFinal" required>
+                                            <option hidden value="">Selecciona la Hora Final</option>
                                         </select>
                                     </div>
                                 </div>
                                 <div class="col-md-12">
                                     <div class="form-floating mb-3">
                                         <label for="" class="form-label">Fecha</label>
-                                        <input class="form-control" id="fechaInput" value="text" readonly type="text" name="fecha" required>
+                                        <input class="form-control" id="fechaInput" value="text" readonly type="text"
+                                               name="fecha" required>
                                     </div>
                                 </div>
                                 <div class="col-md-12">
@@ -122,9 +129,9 @@ try {
                                         <select name="tipo_pago" class="form-control" id="pagoSelect" required>
                                             <option hidden value="">Selecciona una Tipo de Pago</option>
                                             <?php
-                                            foreach($objTipoPagos as $tp){
+                                            foreach ($objTipoPagos as $tp) {
                                                 ?>
-                                                <option value="<?=$tp['id']?>"><?=$tp['tipo_de_pago']?></option>
+                                                <option value="<?= $tp['id'] ?>"><?= $tp['tipo_de_pago'] ?></option>
                                                 <?php
                                             }
                                             ?>
@@ -144,8 +151,6 @@ try {
     </div>
 </main>
 <script>
-
-
     document.addEventListener('DOMContentLoaded', function () {
         var calendarEl = document.getElementById('calendar');
         const today = new Date();
@@ -155,6 +160,7 @@ try {
             locale: 'es',
             editable: true,
             hiddenDays: [1, 2],
+            displayEventEnd: true,
             validRange: {
                 start: today,
             },
@@ -169,8 +175,8 @@ try {
                 {
                     id: '<?php echo $event['id']; ?>',
                     title: 'Reserva Cancha <?php echo $event['ws_cancha_id']; ?>',
-                    start: '<?php echo $event['fecha_reservacion'] .' '.$event['hora_reservacion']; ?>',
-                    end: '<?php echo $event['fecha_reservacion'] .' '. ($event['hora_reservacion']); ?>',
+                    start: '<?php echo $event['fecha_reservacion'] . ' ' . $event['hora_reservacion_inicio']; ?>',
+                    end: '<?php echo $event['fecha_reservacion'] . ' ' . ($event['hora_reservacion_final']); ?>',
                     color: '#0071c5',
                 },
                 <?php endforeach; ?>
@@ -179,6 +185,4 @@ try {
         calendar.render();
     });
 </script>
-
-<?php require 'resources/templates/footer.php' ?>
 
