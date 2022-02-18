@@ -10,24 +10,25 @@ $arrResultado = [
 
 $strDefaultUser = 1;
 
-$arrConfig = include '../../../config/bd.php';
+$arrConfig = include '../../../config/database.php';
 
 try {
-    $strbd = 'mysql:host=' . $arrConfig['db']['host'] . ';dbname=' . $arrConfig['db']['name'];
-    $strConexion = new PDO($strbd, $arrConfig['db']['user'], $arrConfig['db']['pass'], $arrConfig['db']['options']);
+    global $conn;
+
+    $intCancha = explode('@', $_POST['cancha']);
+    $intUser = $_SESSION['user_id'];
 
     //Recibimos Reservacion
     $arrUsuario = array(
         "fecha" => $_POST['fecha'],
         "hora" => $_POST['hora'],
-        "cancha" => $_POST['email'],
+        "cancha" => $intCancha['0'],
         'usuario' => $strDefaultUser,
     );
 
     $strQuery = "INSERT INTO ws_reservacion (fecha_reservacion, hora_reservacion, ws_cancha_id, ws_usuario_id)";
     $strQuery .= "values (:" . implode(", :", array_keys($arrUsuario)) . ")";
-
-    $qTMP = $strConexion->prepare($strQuery);
+    $qTMP = $conn->prepare($strQuery);
     $qTMP->execute($arrUsuario);
 
 } catch (PDOException $error) {

@@ -6,23 +6,33 @@
 $error = false;
 try {
     include 'config/database.php';
-
-    function getCancha($conn){
+    function getCancha(){
+        global $conn;
         $strQuery = "SELECT c.id, c.precio FROM ws_cancha c";
         $qTMP = $conn->prepare($strQuery);
         $qTMP->execute();
         return $qTMP->fetchAll();
     }
-    function getTipoPago($conn){
+    function getTipoPago(){
+        global $conn;
         $strQuery = "SELECT tp.id, tp.tipo_de_pago FROM ws_tipo_de_pago tp";
         $qTMP = $conn->prepare($strQuery);
         $qTMP->execute();
         return $qTMP->fetchAll();
     }
 
-    $objCanchas = getCancha($conn);
-    $objTipoPagos = getTipoPago($conn);
+    function getEventos(){
+        global $conn;
+        $intUser = $_SESSION['user_id'];
+        $strQuery = "SELECT r.id, r.fecha_reservacion, r.hora_reservacion, r.ws_cancha_id, r.ws_usuario_id FROM ws_reservacion r WHERE r.ws_usuario_id = $intUser";
+        $qTMP = $conn->prepare($strQuery);
+        $qTMP->execute();
+        return $qTMP->fetchAll();
+    }
 
+    $objCanchas = getCancha();
+    $objTipoPagos = getTipoPago();
+    $objEventos = getEventos();
 } catch(PDOException $error) {
     $error= $error->getMessage();
 }
@@ -73,12 +83,27 @@ try {
                                     <h5 id="preciotxt"></h5>
                                     <div class="form-floating mb-3">
                                         <label for="title">Cancha</label>
-                                        <select name="canchas" class="form-control" id="canchasSelect" required>
+                                        <select name="cancha" class="form-control" id="canchasSelect" required>
                                             <option hidden value="">Selecciona una Cancha</option>
                                             <?php
                                             foreach($objCanchas as $cancha){
                                                 ?>
                                                 <option value="<?=$cancha['id']?>@<?=$cancha['precio']?>">Cancha <?=$cancha['id']?></option>
+                                                <?php
+                                            }
+                                            ?>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="form-floating mb-3">
+                                        <label for="title">Hora</label>
+                                        <select name="hora" class="form-control" id="horaSelect" required>
+                                            <option hidden value="">Selecciona la hora a reservar</option>
+                                            <?php
+                                            for($i=16; $i<22; $i++){
+                                                ?>
+                                                <option value="<?=$i?>:00:00"><?=$i?>:00</option>
                                                 <?php
                                             }
                                             ?>
@@ -118,7 +143,42 @@ try {
         </div>
     </div>
 </main>
+<script>
 
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var calendarEl = document.getElementById('calendar');
+        const today = new Date();
+
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            locale: 'es',
+            editable: true,
+            hiddenDays: [1, 2],
+            validRange: {
+                start: today,
+            },
+            dateClick: function (info) {
+                $('#myModal').modal('show')
+                document.getElementById('fechaInput').value = info.dateStr
+            },
+            events: [
+                <?php foreach($objEventos as $event):
+
+                ?>
+                {
+                    id: '<?php echo $event['id']; ?>',
+                    title: 'Reserva Cancha <?php echo $event['ws_cancha_id']; ?>',
+                    start: '<?php echo $event['fecha_reservacion'] .' '.$event['hora_reservacion']; ?>',
+                    end: '<?php echo $event['fecha_reservacion'] .' '. ($event['hora_reservacion']); ?>',
+                    color: '#0071c5',
+                },
+                <?php endforeach; ?>
+            ],
+        });
+        calendar.render();
+    });
+</script>
 
 <?php require 'resources/templates/footer.php' ?>
 
